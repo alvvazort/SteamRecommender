@@ -1,17 +1,32 @@
 #encoding:utf-8
-from main.models import Usuario, Ocupacion, Puntuacion, Pelicula, Categoria
+from main.models import *
 from datetime import datetime
+import csv
+from io import StringIO
 
 path = "data"
 
-def populate():
-    o=populateOccupations()
-    g=populateGenres()
-    (u, us)=populateUsers()
-    (m, mo)=populateMovies()
-    p=populateRatings(u,m)  #USAMOS LOS DICCIONARIOS DE USUARIOS Y PELICULAS PARA ACELERAR LA CARGA EN PUNTUACIONES
-    return (o,g,us,mo,p)
 
+def populate():
+    Behavior.objects.all().delete()
+    Categoria.objects.all().delete()
+
+    behaviors=[]
+    fileobj=open(path+"\\steam-200k.csv", "r")
+    for line in fileobj.readlines(): # idUsuario, juego, accion, horas, ?
+        line = csv.reader(StringIO(line), delimiter=",")
+        rip = [row for row in line][0]
+        if len(rip) != 5:
+            continue
+        juego, created=Juego.objects.get_or_create(titulo=rip[1])
+        behaviors.append(Behavior(idUsuario=rip[0],juego=juego, accion=rip[2], horasJugadas=rip[3]))
+        
+    fileobj.close()
+    Behavior.objects.bulk_create(behaviors)  
+    
+    return Behavior.objects.count()
+
+'''
 def populateOccupations():
     Ocupacion.objects.all().delete()
     
@@ -100,6 +115,6 @@ def populateRatings(u,m):
 
     return Puntuacion.objects.count()
 
-
+'''
     
 

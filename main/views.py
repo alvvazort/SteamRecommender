@@ -1,5 +1,5 @@
 #encoding:utf-8
-from main.models import Usuario, Puntuacion, Pelicula
+from main.models import *
 from main.populateDB import populate
 from main.forms import  UsuarioBusquedaForm, PeliculaBusquedaForm
 from django.shortcuts import render, get_object_or_404
@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 # Funcion que carga en el diccionario Prefs todas las puntuaciones de usuarios a peliculas. Tambien carga el diccionario inverso
 # Serializa los resultados en dataRS.dat
 def loadDict():
+    '''
     Prefs={}   # matriz de usuarios y puntuaciones a cada a items
     shelf = shelve.open("dataRS.dat")
     ratings = Puntuacion.objects.all()
@@ -27,16 +28,19 @@ def loadDict():
     shelf['Prefs']=Prefs
     shelf['ItemsPrefs']=transformPrefs(Prefs)
     shelf.close()
+    '''
 
 
 
 #Funcion de acceso restringido que carga los datos en la BD  
 @login_required(login_url='/ingresar')
 def populateDatabase(request):
-    (o,g,u,m,p)=populate()
-    mensaje = 'Se han cargado: ' + str(o) + ' ocupaciones ;' + str(g) + ' generos ;' + str(u) + ' usuarios ;' + str(m) + ' peliculas ;' + str(p) + ' puntuaciones'
+    
+    numBehaviors=populate()
+    mensaje = 'Se han cargado: ' + str(numBehaviors) + ' comportamientos, ' + str(Juego.objects.count())+ ' juegos'
     logout(request)  # se hace logout para obligar a login cada vez que se vaya a poblar la BD
     return render(request, 'mensaje.html',{'titulo':'FIN DE CARGA DE LA BD','mensaje':mensaje,'STATIC_URL':settings.STATIC_URL})
+    
 
 
 
@@ -47,6 +51,7 @@ def loadRS(request):
 
 
 def recomendar_peliculas_usuario_RSusuario(request):
+    '''
     formulario = UsuarioBusquedaForm()
     items = None
     usuario = None
@@ -70,8 +75,10 @@ def recomendar_peliculas_usuario_RSusuario(request):
             items= zip(peliculas,puntuaciones)
     
     return render(request, 'recomendar_peliculas_usuarios.html', {'formulario':formulario, 'items':items, 'usuario':usuario, 'STATIC_URL':settings.STATIC_URL})
+    '''
 
 def mostrar_peliculas_parecidas(request):
+    '''
     formulario = PeliculaBusquedaForm()
     pelicula = None
     items = None
@@ -96,10 +103,11 @@ def mostrar_peliculas_parecidas(request):
             items= zip(peliculas,similaridad)
     
     return render(request, 'peliculas_similares.html', {'formulario':formulario, 'pelicula': pelicula, 'items': items, 'STATIC_URL':settings.STATIC_URL})
-
+'''
 
 
 def mostrar_puntuaciones_usuario(request):
+    '''
     formulario = UsuarioBusquedaForm()
     puntuaciones = None
     idusuario = None
@@ -112,7 +120,7 @@ def mostrar_puntuaciones_usuario(request):
             puntuaciones = Puntuacion.objects.filter(idUsuario = Usuario.objects.get(pk=idusuario))
             
     return render(request, 'puntuaciones_usuario.html', {'formulario':formulario, 'puntuaciones':puntuaciones, 'idusuario':idusuario, 'STATIC_URL':settings.STATIC_URL})
-
+'''
 
 def index(request):
     return render(request, 'index.html',{'STATIC_URL':settings.STATIC_URL})
