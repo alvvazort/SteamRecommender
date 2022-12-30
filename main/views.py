@@ -1,6 +1,6 @@
 #encoding:utf-8
 from main.models import *
-from main.populateDB import populate
+from main.populateDB import populate, get_list_of_appId, populate_categories
 from main.forms import  UsuarioBusquedaForm, PeliculaBusquedaForm
 from django.shortcuts import render, get_object_or_404
 from django.http.response import HttpResponseRedirect
@@ -41,6 +41,16 @@ def populateDatabase(request):
     logout(request)  # se hace logout para obligar a login cada vez que se vaya a poblar la BD
     return render(request, 'mensaje.html',{'titulo':'FIN DE CARGA DE LA BD','mensaje':mensaje,'STATIC_URL':settings.STATIC_URL})
     
+#Funcion de acceso restringido que carga los datos en la BD  
+@login_required(login_url='/ingresar-scraping')
+def scraping(request):
+    mensaje=get_list_of_appId()
+    populate_categories()
+    logout(request)  # se hace logout para obligar a login cada vez que se vaya a poblar la BD
+    mensaje += "Se han cargado " + str(Categoria.objects.count()) + " categorías"
+    return render(request, 'mensaje.html',{'titulo':'Datos de videojuegos cargados','mensaje':mensaje,'STATIC_URL':settings.STATIC_URL})
+    
+
 
 
 
@@ -144,4 +154,21 @@ def ingresar(request):
                      
     return render(request, 'ingresar.html', {'formulario':formulario, 'STATIC_URL':settings.STATIC_URL})
 
+def ingresar_scraping(request):
+    formulario = AuthenticationForm()
+    if request.method=='POST':
+        formulario = AuthenticationForm(request.POST)
+        usuario=request.POST['username']
+        clave=request.POST['password']
+        acceso=authenticate(username=usuario,password=clave)
+        if acceso is not None:
+            if acceso.is_active:
+                login(request, acceso)
+                return (HttpResponseRedirect('/scraping'))
+            else:
+                return render(request, 'mensaje_error.html',{'error':"USUARIO NO ACTIVO",'STATIC_URL':settings.STATIC_URL})
+        else:
+            return render(request, 'mensaje_error.html',{'error':"USUARIO O CONTRASEÑA INCORRECTOS",'STATIC_URL':settings.STATIC_URL})
+                     
+    return render(request, 'ingresar.html', {'formulario':formulario, 'STATIC_URL':settings.STATIC_URL})
 

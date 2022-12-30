@@ -14,8 +14,9 @@ class Categoria(models.Model):
         ordering =('nombre', )
 
 class Juego(models.Model):
-    titulo = models.TextField(verbose_name='Título')
+    titulo = models.TextField(verbose_name='Título', unique=True)
     categorias = models.ManyToManyField(Categoria)
+    appId= models.PositiveBigIntegerField(null=True)
 
     def __str__(self):
         return self.titulo

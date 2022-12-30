@@ -9,7 +9,9 @@ urlpatterns = [
     path('',views.index),
     path('index.html/', views.index),
     path('populate/', views.populateDatabase),
+    path('scraping/',views.scraping),
     path('loadRS/', views.loadRS),
     path('ingresar/', views.ingresar),
+    path('ingresar-scraping/', views.ingresar_scraping),
     path('admin/',admin.site.urls),
     ]

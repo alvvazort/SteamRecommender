@@ -1,10 +1,107 @@
 #encoding:utf-8
+from ssl import SSLError
 from main.models import *
 from datetime import datetime
 import csv
 from io import StringIO
+from bs4 import BeautifulSoup
+import urllib.request
+import json
+import time
+import os.path
+# third-party imports
+import requests
+from whoosh.fields import Schema, TEXT, ID
+import shutil
+from whoosh.index import open_dir, create_in
+from whoosh.qparser import QueryParser
+
 
 path = "data"
+
+def get_request(url, parameters=None):
+    """Return json-formatted response of a get request using optional parameters.
+    
+    Parameters
+    ----------
+    url : string
+    parameters : {'parameter': 'value'}
+        parameters to pass as part of get request
+    
+    Returns
+    -------
+    json_data
+        json-formatted response (dict-like)
+    """
+    try:
+        response = requests.get(url=url, params=parameters)
+    except SSLError as s:
+        print('SSL Error:', s)
+        
+        for i in range(5, 0, -1):
+            print('\rWaiting... ({})'.format(i), end='')
+            time.sleep(1)
+        print('\rRetrying.' + ' '*10)
+        
+        # recusively try again
+        return get_request(url, parameters)
+    
+    if response:
+        return response.json()
+    else:
+        # response is none usually means too many requests. Wait and try again 
+        print('No response, waiting 10 seconds...')
+        time.sleep(10)
+        print('Retrying.')
+        return get_request(url, parameters)
+
+def get_list_of_appId():
+    url = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
+    parameters = {}
+
+    # request 'all' from steam spy and parse into dataframe
+    json_data = get_request(url, parameters=parameters)["applist"]["apps"]
+
+    # Almacenar todas las Ids de los juegos de Steam y sus respectivos nombres con woosh
+    schem = Schema(appId=ID(stored=True), titulo=TEXT(stored=True))
+
+    #eliminamos el directorio del Ãíndice, si existe
+    if os.path.exists("Index"):
+        shutil.rmtree("Index")
+    os.mkdir("Index")
+    #creamos el í­ndice
+    ix = create_in("Index", schema=schem)
+    #creamos un writer para poder aÃ±adir documentos al indice
+    writer = ix.writer()
+
+    for game in json_data:
+        writer.add_document(appId=str(game["appid"]), titulo= game["name"])   
+
+    writer.commit()
+
+    return "Índice creado correctamente \nHay " + str(ix.doc_count_all()) + " registros (appId y nombre del juego)"
+
+def scrap_categories(appId, juego):
+    f = urllib.request.urlopen("https://store.steampowered.com/app/"+appId)
+    s = BeautifulSoup(f, "html.parser")
+
+    print(s)
+
+def populate_categories():
+    ix=open_dir("Index")
+    qp = QueryParser("titulo", schema=ix.schema)
+
+    with ix.searcher() as searcher:
+
+        for juego in Juego.objects.all(): # Juego por juego se busca en el index para así poder obtener el appId y guardarlo en la DB
+            q = qp.parse(str(juego.titulo))
+            results=searcher.search(q,limit=1)
+            for r in results:
+                juego.appId=r["appId"]
+                scrap_categories(r["appId"], juego)
+                juego.save()
+
+
 
 
 def populate():
