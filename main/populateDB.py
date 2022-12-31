@@ -97,6 +97,9 @@ def scrap_categories(appId, juego):
         if s.find("b", string="Developer:"): # Guardar desarrollador si existe
             desarrollador=s.find("b", string="Developer:").find_next_sibling("a").text.strip()
             juego.desarrollador=desarrollador
+        if s.find("img", class_="game_header_image_full"):
+            imagen= s.find("img", class_="game_header_image_full")["src"]
+            juego.imagen= imagen
 
         juego.save()
 
@@ -114,7 +117,7 @@ def populate_categories():
                 juego.appId=r["appId"]
                 scrap_categories(r["appId"], juego)
             if i%100==99:
-                print("Se han añadido las categorías y desarolladores de "+ str(i+1)+" juegos")
+                print("Se han añadido las categorías e información de "+ str(i+1)+" juegos")
 
 
 

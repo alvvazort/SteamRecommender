@@ -1,7 +1,7 @@
 #encoding:utf-8
 from main.models import *
 from main.populateDB import populate, get_list_of_appId, populate_categories
-from main.forms import  UsuarioBusquedaForm, PeliculaBusquedaForm
+from main.forms import  UsuarioBusquedaForm, JuegoBusquedaForm
 from django.shortcuts import render, get_object_or_404
 from django.http.response import HttpResponseRedirect
 from django.conf import settings
@@ -12,23 +12,39 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 
+def rate_by_hours_played(hours):
+    rate=0
+    if(hours<=1):
+        rate=1
+    elif(hours<=2):
+        rate=2
+    elif(hours<=4):
+        rate=3
+    elif(hours<=8):
+        rate=4
+    else:
+        rate=5
+    
+    return rate
+
 # Funcion que carga en el diccionario Prefs todas las puntuaciones de usuarios a peliculas. Tambien carga el diccionario inverso
 # Serializa los resultados en dataRS.dat
 def loadDict():
-    '''
+    
     Prefs={}   # matriz de usuarios y puntuaciones a cada a items
     shelf = shelve.open("dataRS.dat")
-    ratings = Puntuacion.objects.all()
-    for ra in ratings:
-        user = ra.idUsuario.idUsuario
-        itemid = ra.idPelicula.idPelicula
-        rating = ra.puntuacion
-        Prefs.setdefault(user, {})
-        Prefs[user][itemid] = rating
+    behaviors = Behavior.objects.all()
+    for ra in behaviors:
+        if ra.accion== "play":
+            user = ra.idUsuario
+            itemid = ra.juego.appId
+            rating = rate_by_hours_played(ra.horasJugadas)
+            Prefs.setdefault(user, {})
+            Prefs[user][itemid] = rating
     shelf['Prefs']=Prefs
     shelf['ItemsPrefs']=transformPrefs(Prefs)
     shelf.close()
-    '''
+    
 
 
 
@@ -49,9 +65,6 @@ def scraping(request):
     logout(request)  # se hace logout para obligar a login cada vez que se vaya a poblar la BD
     mensaje += "Se han cargado " + str(Categoria.objects.count()) + " categorías"
     return render(request, 'mensaje.html',{'titulo':'Datos de videojuegos cargados','mensaje':mensaje,'STATIC_URL':settings.STATIC_URL})
-    
-
-
 
 
 def loadRS(request):
@@ -87,33 +100,35 @@ def recomendar_peliculas_usuario_RSusuario(request):
     return render(request, 'recomendar_peliculas_usuarios.html', {'formulario':formulario, 'items':items, 'usuario':usuario, 'STATIC_URL':settings.STATIC_URL})
     '''
 
-def mostrar_peliculas_parecidas(request):
-    '''
-    formulario = PeliculaBusquedaForm()
-    pelicula = None
+def mostrar_juegos_parecidos(request):
+    formulario = JuegoBusquedaForm()
+    juego = None
     items = None
-    
     if request.method=='POST':
-        formulario = PeliculaBusquedaForm(request.POST)
-        
-        if formulario.is_valid():
-            idPelicula = formulario.cleaned_data['idPelicula']
-            pelicula = get_object_or_404(Pelicula, pk=idPelicula)
-            shelf = shelve.open("dataRS.dat")
-            ItemsPrefs = shelf['ItemsPrefs']
-            shelf.close()
-            #utilizo distancia euclidea para que se vea mejor en los listados
-            parecidas = topMatches(ItemsPrefs, int(idPelicula),n=3,similarity=sim_distance)
-            peliculas = []
-            similaridad = []
-            for re in parecidas:
-                peliculas.append(Pelicula.objects.get(pk=re[1]))
-                similaridad.append(re[0])
-                print(re[0])
-            items= zip(peliculas,similaridad)
+        formulario = JuegoBusquedaForm(request.POST)
+        try:
+            if formulario.is_valid():
+                idJuego = formulario.cleaned_data['idJuego']
+                
+                juego = Juego.objects.filter(appId=idJuego)[0]
+                
+                shelf = shelve.open("dataRS.dat")
+                ItemsPrefs = shelf['ItemsPrefs']
+                shelf.close()
+                #utilizo distancia euclidea para que se vea mejor en los listados
+                parecidas = topMatches(ItemsPrefs, int(idJuego),n=3,similarity=sim_distance)
+                juegos = []
+                similaridad = []
+                for re in parecidas:
+                    juegos.append(Juego.objects.filter(appId=re[1])[0])
+                    similaridad.append(re[0])
+                items= zip(juegos,similaridad)
+        except:
+            mensaje = 'La id del juego no es correcto'
+            return render(request, 'mensaje.html',{'titulo':'ERROR','mensaje':mensaje,'STATIC_URL':settings.STATIC_URL})
     
-    return render(request, 'peliculas_similares.html', {'formulario':formulario, 'pelicula': pelicula, 'items': items, 'STATIC_URL':settings.STATIC_URL})
-'''
+    return render(request, 'juegos_similares.html', {'formulario':formulario, 'juego': juego, 'items': items, 'STATIC_URL':settings.STATIC_URL})
+
 
 
 def mostrar_puntuaciones_usuario(request):
@@ -133,7 +148,8 @@ def mostrar_puntuaciones_usuario(request):
 '''
 
 def index(request):
-    return render(request, 'index.html',{'STATIC_URL':settings.STATIC_URL})
+    juegos = Juego.objects.all()[:9]
+    return render(request, 'index.html',{'STATIC_URL':settings.STATIC_URL, 'juegos':juegos})
 
 
 def ingresar(request):

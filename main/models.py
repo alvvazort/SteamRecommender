@@ -15,6 +15,7 @@ class Categoria(models.Model):
 
 class Juego(models.Model):
     titulo = models.TextField(verbose_name='Título', unique=True)
+    imagen = models.URLField(verbose_name="Imagen del juego", null= True)
     categorias = models.ManyToManyField(Categoria)
     desarrollador= models.TextField(verbose_name='Desarrollador', null=True)
     editor = models.TextField(verbose_name='Editor', null=True)

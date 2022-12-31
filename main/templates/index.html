@@ -5,11 +5,36 @@
 
 
 {% block contenido %} 
-     	<h3>Álvaro Vázquez Ortiz</h3>
+	<h3>Álvaro Vázquez Ortiz</h3>
 
+	<hr>
+	<h3>SISTEMA DE RECOMENDACIÓN DE JUEGOS DE STEAM</h3>
+	
 		<hr>
- 	    <h3>SISTEMA DE RECOMENDACIÓN DE JUEGOS DE STEAM</h3>
-	    
-		 <hr>
+		<div class="container bootstrap snippets bootdey">
+			<div class="row">
+				{% if juegos %}
+				{% for juego in juegos %}
+
+			   <div class="col-md-4 col-sm-6 col-xs-12">
+					<div class="wp-block product">
+						<figure>
+							<img alt="" src="{{juego.imagen}}" class="img-responsive img-center">
+						</figure>
+						<h2 class="product-title"><a href="">{{juego.titulo}}</a></h2>
+						<p>
+						<h5>Desarrollador: {{juego.desarrollador}}</h5>
+						<h5>Editor: {{juego.editor}}</h5>
+						</p>
+						<div class="wp-block-footer">
+
+						</div>
+					</div>
+				</div>
+				{% endfor %}
+				{% endif %}
+			</div>
+		</div>               
+		
 
 {% endblock %}
