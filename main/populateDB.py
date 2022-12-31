@@ -84,22 +84,37 @@ def get_list_of_appId():
 def scrap_categories(appId, juego):
     f = urllib.request.urlopen("https://store.steampowered.com/app/"+appId)
     s = BeautifulSoup(f, "html.parser")
+    if s.find("b", text="Genre:"):
+        generos=s.find("b", string="Genre:").find_next_sibling("span").text.strip().split(",")
+        for genero in generos: #Crear si no existe la categoría y asignarlo
+            genero = genero.strip()
+            categoria, created = Categoria.objects.get_or_create(nombre=genero)
+            categoria.save()
+            juego.categorias.add(categoria)
+        if s.find("b", string="Publisher:"): # Guardar el editor si existe
+            editor=s.find("b", string="Publisher:").find_next_sibling("a").text.strip()
+            juego.editor=editor
+        if s.find("b", string="Developer:"): # Guardar desarrollador si existe
+            desarrollador=s.find("b", string="Developer:").find_next_sibling("a").text.strip()
+            juego.desarrollador=desarrollador
 
-    print(s)
+        juego.save()
+
 
 def populate_categories():
     ix=open_dir("Index")
     qp = QueryParser("titulo", schema=ix.schema)
 
     with ix.searcher() as searcher:
-
-        for juego in Juego.objects.all(): # Juego por juego se busca en el index para así poder obtener el appId y guardarlo en la DB
+        print("Comienzo del scraping, esto llevará una gran cantidad de tiempo")
+        for i,juego in enumerate(Juego.objects.all()): # Juego por juego se busca en el index para así poder obtener el appId y guardarlo en la DB
             q = qp.parse(str(juego.titulo))
             results=searcher.search(q,limit=1)
             for r in results:
                 juego.appId=r["appId"]
                 scrap_categories(r["appId"], juego)
-                juego.save()
+            if i%100==99:
+                print("Se han añadido las categorías y desarolladores de "+ str(i+1)+" juegos")
 
 
 

@@ -16,6 +16,8 @@ class Categoria(models.Model):
 class Juego(models.Model):
     titulo = models.TextField(verbose_name='Título', unique=True)
     categorias = models.ManyToManyField(Categoria)
+    desarrollador= models.TextField(verbose_name='Desarrollador', null=True)
+    editor = models.TextField(verbose_name='Editor', null=True)
     appId= models.PositiveBigIntegerField(null=True)
 
     def __str__(self):
