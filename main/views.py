@@ -27,7 +27,7 @@ def rate_by_hours_played(hours):
     
     return rate
 
-# Funcion que carga en el diccionario Prefs todas las puntuaciones de usuarios a peliculas. Tambien carga el diccionario inverso
+# Funcion que carga en el diccionario Prefs todas las puntuaciones de usuarios a juegos. Tambien carga el diccionario inverso
 # Serializa los resultados en dataRS.dat
 def loadDict():
     
@@ -73,32 +73,35 @@ def loadRS(request):
     return render(request, 'mensaje.html',{'titulo':'FIN DE CARGA DEL RS','mensaje':mensaje,'STATIC_URL':settings.STATIC_URL})
 
 
-def recomendar_peliculas_usuario_RSusuario(request):
-    '''
+def recomendar_juegos_usuario_RSusuario(request):
+    
     formulario = UsuarioBusquedaForm()
     items = None
-    usuario = None
+    idUsuario = None
+
+    try:
+        if request.method=='POST':
+            formulario = UsuarioBusquedaForm(request.POST)
+            
+            if formulario.is_valid():
+                idUsuario=formulario.cleaned_data['idUsuario']
+                shelf = shelve.open("dataRS.dat")
+                Prefs = shelf['Prefs']
+                shelf.close()
+                rankings = getRecommendations(Prefs,int(idUsuario))
+                recomendadas= rankings[:3]
+                juegos = []
+                puntuaciones = []
+                for re in recomendadas:
+                    juegos.append(Juego.objects.filter(appId=re[1])[0])
+                    puntuaciones.append(re[0])
+                items= zip(juegos,puntuaciones)
+    except:
+        mensaje = 'La id del usuario no es correcto'
+        return render(request, 'mensaje.html',{'titulo':'ERROR','mensaje':mensaje,'STATIC_URL':settings.STATIC_URL})
+
+    return render(request, 'recomendar_juegos_usuarios.html', {'formulario':formulario, 'items':items, 'usuario':idUsuario, 'STATIC_URL':settings.STATIC_URL})
     
-    if request.method=='POST':
-        formulario = UsuarioBusquedaForm(request.POST)
-        
-        if formulario.is_valid():
-            idUsuario=formulario.cleaned_data['idUsuario']
-            usuario = get_object_or_404(Usuario, pk=idUsuario)
-            shelf = shelve.open("dataRS.dat")
-            Prefs = shelf['Prefs']
-            shelf.close()
-            rankings = getRecommendations(Prefs,int(idUsuario))
-            recomendadas= rankings[:2]
-            peliculas = []
-            puntuaciones = []
-            for re in recomendadas:
-                peliculas.append(Pelicula.objects.get(pk=re[1]))
-                puntuaciones.append(re[0])
-            items= zip(peliculas,puntuaciones)
-    
-    return render(request, 'recomendar_peliculas_usuarios.html', {'formulario':formulario, 'items':items, 'usuario':usuario, 'STATIC_URL':settings.STATIC_URL})
-    '''
 
 def mostrar_juegos_parecidos(request):
     formulario = JuegoBusquedaForm()
@@ -131,10 +134,10 @@ def mostrar_juegos_parecidos(request):
 
 
 
-def mostrar_puntuaciones_usuario(request):
-    '''
+def mostrar_acciones_usuario(request):
+    
     formulario = UsuarioBusquedaForm()
-    puntuaciones = None
+    acciones = None
     idusuario = None
     
     if request.method=='POST':
@@ -142,10 +145,10 @@ def mostrar_puntuaciones_usuario(request):
         
         if formulario.is_valid():
             idusuario = formulario.cleaned_data['idUsuario']
-            puntuaciones = Puntuacion.objects.filter(idUsuario = Usuario.objects.get(pk=idusuario))
+            acciones = Behavior.objects.filter(idUsuario = idusuario)
             
-    return render(request, 'puntuaciones_usuario.html', {'formulario':formulario, 'puntuaciones':puntuaciones, 'idusuario':idusuario, 'STATIC_URL':settings.STATIC_URL})
-'''
+    return render(request, 'acciones_usuario.html', {'formulario':formulario, 'acciones':acciones, 'idusuario':idusuario, 'STATIC_URL':settings.STATIC_URL})
+
 
 def index(request):
     juegos = Juego.objects.all()[:9]
@@ -186,5 +189,5 @@ def ingresar_scraping(request):
         else:
             return render(request, 'mensaje_error.html',{'error':"USUARIO O CONTRASEÑA INCORRECTOS",'STATIC_URL':settings.STATIC_URL})
                      
-    return render(request, 'ingresar.html', {'formulario':formulario, 'STATIC_URL':settings.STATIC_URL})
+    return render(request, 'ingresar_scraping.html', {'formulario':formulario, 'STATIC_URL':settings.STATIC_URL})
 

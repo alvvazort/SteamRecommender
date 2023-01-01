@@ -1,0 +1,12 @@
+{% extends 'master.html' %}
+
+{% block titulo %} 
+	Identifiquese para cargar categorías y datos de videojuegos (con scraping)
+{% endblock %}   
+
+{% block contenido %} 
+    	<form id="formulario" method="post" action=''>{% csrf_token %}
+    		<table>{{formulario}}</table>
+    		<p><input type='submit' value='Realizar scraping'></p>	
+    	</form>
+{% endblock %}

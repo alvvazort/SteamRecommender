@@ -3,9 +3,9 @@ from django.urls import path
 from main import views
 
 urlpatterns = [
-    path('puntuaciones_usuario/',views.mostrar_puntuaciones_usuario),
+    path('acciones_usuario/',views.mostrar_acciones_usuario),
     path('juegos_similares/',views.mostrar_juegos_parecidos),
-    path('recomendar_peliculas_usuarios/',views.recomendar_peliculas_usuario_RSusuario),
+    path('recomendar_juegos_usuarios/',views.recomendar_juegos_usuario_RSusuario),
     path('',views.index),
     path('index.html/', views.index),
     path('populate/', views.populateDatabase),

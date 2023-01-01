@@ -1,0 +1,47 @@
+{% extends 'master.html' %}
+
+{% block titulo %} B&uacute;squeda de puntuaciones de usuario {% endblock %}    
+
+{% block contenido %} 
+    	<form id="formulario" method="post" action=''>{% csrf_token %}
+    		<fieldset>
+    			<legend>B&uacute;squeda de Usuarios</legend>
+    			{{formulario}}
+    			<br><br>
+    			<input type='submit' value='Realizar B&uacute;squeda'/>
+    		</fieldset>
+    	</form>
+	    
+	    <hr>
+
+	    {% if acciones %}
+		    <h3> Acciones del usuario {{idusuario}}:  {{ acciones|length }}</h3>
+		    <dl>
+
+
+			<div class="container bootstrap snippets bootdey">
+				<div class="row">
+					{% for row in acciones %}
+	
+				   <div class="col-md-4 col-sm-6 col-xs-12">
+						<div class="wp-block product">
+							<figure>
+								<img alt="" src="{{row.juego.imagen}}" class="img-responsive img-center">
+							</figure>
+							<h2 class="product-title"><a href="">{{row.juego.titulo}}</a></h2>
+							<p>
+							<h5>Desarrollador: {{row.juego.desarrollador}}</h5>
+							<h5>Editor: {{row.juego.editor}}</h5>
+							</p>
+							<div class="wp-block-footer">
+								Horas jugadas:{{row.horasJugadas | floatformat:"2"}}
+							</div>
+						</div>
+					</div>
+					{% endfor %}
+				</div>
+			</div>         
+
+		{% endif %}
+
+{% endblock %}

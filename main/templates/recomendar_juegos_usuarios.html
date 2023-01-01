@@ -1,0 +1,48 @@
+{% extends 'master.html' %}
+
+{% block titulo %} Recomendaci&oacute;n de pel&iacute;culas para un usuario {% endblock %}	    
+
+{% block contenido %} 
+
+    	<form id="formulario" method="post" action=''>{% csrf_token %}
+    		<fieldset>
+    			<legend>B&uacute;squeda de Usuario</legend>
+    			{{formulario}}
+    			<BR><BR>
+
+    			<input type='submit' value='Realizar B&uacute;squeda'/>
+    		</fieldset>
+    	</form>
+	    
+	    <hr>
+
+	    {% if items %}
+		    <h4> Pel&iacute;culas recomendadas para el usuario {{usuario}}</h4>
+		    <dl class="uk-description-list-line">
+
+			<div class="container bootstrap snippets bootdey">
+				<div class="row">
+					{% for juego, puntuacion in items %}
+	
+				   <div class="col-md-4 col-sm-6 col-xs-12">
+						<div class="wp-block product">
+							<figure>
+								<img alt="" src="{{juego.imagen}}" class="img-responsive img-center">
+							</figure>
+							<h2 class="product-title"><a href="">{{juego.titulo}}</a></h2>
+							<p>
+							<h5>Desarrollador: {{juego.desarrollador}}</h5>
+							<h5>Editor: {{juego.editor}}</h5>
+							</p>
+							<div class="wp-block-footer">
+								Puntuaci&oacute;n:{{puntuacion | floatformat:"2"}}
+							</div>
+						</div>
+					</div>
+					{% endfor %}
+				</div>
+			</div>         
+
+		{% endif %}
+
+{% endblock %}
