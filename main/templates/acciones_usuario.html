@@ -30,12 +30,15 @@
 							</figure>
 							<h2 class="product-title"><a href="">{{row.juego.titulo}}</a></h2>
 							<p>
+							<h5>Acción: {{row.accion}}</h5>
 							<h5>Desarrollador: {{row.juego.desarrollador}}</h5>
 							<h5>Editor: {{row.juego.editor}}</h5>
 							</p>
+							{% if row.accion == "play" %}
 							<div class="wp-block-footer">
 								Horas jugadas:{{row.horasJugadas | floatformat:"2"}}
 							</div>
+							{% endif %}
 						</div>
 					</div>
 					{% endfor %}
