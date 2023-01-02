@@ -89,7 +89,7 @@ def recomendar_juegos_usuario_RSusuario(request):
                 Prefs = shelf['Prefs']
                 shelf.close()
                 rankings = getRecommendations(Prefs,int(idUsuario))
-                recomendadas= rankings[:3]
+                recomendadas= rankings[:6]
                 juegos = []
                 puntuaciones = []
                 for re in recomendadas:
@@ -119,7 +119,7 @@ def mostrar_juegos_parecidos(request):
                 ItemsPrefs = shelf['ItemsPrefs']
                 shelf.close()
                 #utilizo distancia euclidea para que se vea mejor en los listados
-                parecidas = topMatches(ItemsPrefs, int(idJuego),n=3,similarity=sim_distance)
+                parecidas = topMatches(ItemsPrefs, int(idJuego),n=6,similarity=sim_distance)
                 juegos = []
                 similaridad = []
                 for re in parecidas:
@@ -151,7 +151,7 @@ def mostrar_acciones_usuario(request):
 
 
 def index(request):
-    juegos = Juego.objects.all()[:9]
+    juegos = Juego.objects.all()[3:12]
     return render(request, 'index.html',{'STATIC_URL':settings.STATIC_URL, 'juegos':juegos})
 
 
